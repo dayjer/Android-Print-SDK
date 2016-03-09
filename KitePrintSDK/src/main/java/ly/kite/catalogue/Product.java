@@ -518,7 +518,7 @@ public class Product implements Parcelable, IGroupOrProduct
    * Sets the image URLs.
    *
    *****************************************************/
-  Product setImageURLs( URL heroImageURL, ArrayList<URL> imageURLList )
+  public Product setImageURLs( URL heroImageURL, ArrayList<URL> imageURLList )
     {
     mHeroImageURL = heroImageURL;
     mImageURLList = imageURLList;
