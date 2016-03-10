@@ -43,6 +43,7 @@ package ly.kite.util;
 ///// Class Declaration /////
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -56,6 +57,7 @@ import android.util.Log;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 
 /*****************************************************
@@ -64,7 +66,7 @@ import java.util.LinkedList;
  *
  *****************************************************/
 public class ImageLoader
-  {
+{
   ////////// Static Constant(s) //////////
 
   @SuppressWarnings( "unused" )
@@ -100,14 +102,14 @@ public class ImageLoader
    *
    *****************************************************/
   static public ImageLoader getInstance( Context context )
-    {
+  {
     if ( sImageLoader == null )
-      {
+    {
       sImageLoader = new ImageLoader( context );
-      }
+    }
 
     return ( sImageLoader );
-    }
+  }
 
 
   /*****************************************************
@@ -117,7 +119,7 @@ public class ImageLoader
    *
    *****************************************************/
   static private BitmapFactory.Options getCommonBitmapOptions( Bitmap.Config bitmapConfig )
-    {
+  {
     BitmapFactory.Options bitmapFactoryOptions = new BitmapFactory.Options();
 
     bitmapFactoryOptions.inBitmap                 = null;
@@ -132,7 +134,7 @@ public class ImageLoader
     bitmapFactoryOptions.mCancel                  = false;
 
     return ( bitmapFactoryOptions );
-    }
+  }
 
 
   /*****************************************************
@@ -142,7 +144,7 @@ public class ImageLoader
    *
    *****************************************************/
   static private BitmapFactory.Options getBoundsBitmapOptions( Bitmap.Config bitmapConfig )
-    {
+  {
     BitmapFactory.Options bitmapFactoryOptions = getCommonBitmapOptions( bitmapConfig );
 
     bitmapFactoryOptions.inJustDecodeBounds       = true;
@@ -150,7 +152,7 @@ public class ImageLoader
     bitmapFactoryOptions.inSampleSize             = 0;
 
     return ( bitmapFactoryOptions );
-    }
+  }
 
 
   /*****************************************************
@@ -159,7 +161,7 @@ public class ImageLoader
    *
    *****************************************************/
   static private BitmapFactory.Options getFullBitmapOptions( Bitmap.Config bitmapConfig, int sampleSize )
-    {
+  {
     BitmapFactory.Options bitmapFactoryOptions = getCommonBitmapOptions( bitmapConfig );
 
     bitmapFactoryOptions.inJustDecodeBounds       = false;
@@ -167,7 +169,7 @@ public class ImageLoader
     bitmapFactoryOptions.inSampleSize             = sampleSize;
 
     return ( bitmapFactoryOptions );
-    }
+  }
 
 
   /*****************************************************
@@ -178,20 +180,20 @@ public class ImageLoader
    *
    *****************************************************/
   static public int getRotationForImage( Context context, Uri uri )
-    {
+  {
     if ( DEBUGGING_IS_ENABLED )
-      {
+    {
       Log.d( LOG_TAG, "getRotationForImage( context, uri = " + ( uri != null ? uri.toString() : "null" ) + " )" );
-      }
+    }
 
     Cursor cursor = null;
 
     try
-      {
+    {
       if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  URI scheme = " + uri.getScheme() );
 
       if ( uri.getScheme().equals( "content" ) )
-        {
+      {
         ///// Content /////
 
         String[] projection = { MediaStore.Images.ImageColumns.ORIENTATION };
@@ -199,16 +201,16 @@ public class ImageLoader
         cursor = context.getContentResolver().query( uri, projection, null, null, null );
 
         if ( cursor.moveToFirst() )
-          {
+        {
           int rotation = cursor.getInt( 0 );
 
           if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  Rotation = " + rotation );
 
           return ( rotation );
-          }
         }
+      }
       else if ( uri.getScheme().equals( "file" ) )
-        {
+      {
         ///// File /////
 
         if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  URI path = " + uri.getPath() );
@@ -220,19 +222,19 @@ public class ImageLoader
         if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  Rotation = " + rotation );
 
         return ( rotation );
-        }
       }
+    }
     catch ( IOException ioe )
-      {
+    {
       Log.e( LOG_TAG, "Error checking exif", ioe );
-      }
+    }
     finally
-      {
+    {
       if ( cursor != null ) cursor.close();
-      }
+    }
 
     return ( 0 );
-    }
+  }
 
 
   /*****************************************************
@@ -241,33 +243,33 @@ public class ImageLoader
    *
    *****************************************************/
   static int degreesFromEXIFOrientation( int exifOrientation )
-    {
+  {
     if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "degreesFromEXIFOrientation( exifOrientation = " + exifOrientation + " )" );
 
     if ( exifOrientation == ExifInterface.ORIENTATION_ROTATE_90 )
-      {
+    {
       return ( 90 );
-      }
+    }
     else if ( exifOrientation == ExifInterface.ORIENTATION_ROTATE_180 )
-      {
+    {
       return ( 180 );
-      }
+    }
     else if ( exifOrientation == ExifInterface.ORIENTATION_ROTATE_270 )
-      {
+    {
       return ( 270 );
-      }
+    }
 
     return ( 0 );
-    }
+  }
 
 
   ////////// Constructor(s) //////////
 
   private ImageLoader( Context context )
-    {
+  {
     mContext      = context;
     mRequestQueue = new LinkedList<>();
-    }
+  }
 
 
   ////////// Method(s) //////////
@@ -278,12 +280,12 @@ public class ImageLoader
    *
    *****************************************************/
   public void clearPendingRequests()
-    {
+  {
     synchronized ( mRequestQueue )
-      {
+    {
       mRequestQueue.clear();
-      }
     }
+  }
 
 
   /*****************************************************
@@ -294,15 +296,15 @@ public class ImageLoader
    *
    *****************************************************/
   private void requestImageLoad( Request request )
-    {
+  {
     synchronized ( mRequestQueue )
-      {
+    {
       // Add the request to the queue
       mRequestQueue.addFirst( request );
 
       // If the downloader task is already running - do nothing more
       if ( mLoaderTask != null ) return;
-      }
+    }
 
 
     // Create and start a new downloader task
@@ -310,7 +312,7 @@ public class ImageLoader
     mLoaderTask = new LoaderTask();
 
     mLoaderTask.executeOnExecutor( AsyncTask.SERIAL_EXECUTOR );
-    }
+  }
 
 
   /*****************************************************
@@ -321,9 +323,9 @@ public class ImageLoader
    *
    *****************************************************/
   public void requestImageLoad( Object key, File sourceFile, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     requestImageLoad( new Request( key, sourceFile, imageTransformer, scaledImageWidth, imageConsumer ) );
-    }
+  }
 
 
   /*****************************************************
@@ -334,9 +336,9 @@ public class ImageLoader
    *
    *****************************************************/
   public void requestImageLoad( Object key, int sourceResourceId, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     requestImageLoad( new Request( key, sourceResourceId, imageTransformer, scaledImageWidth, imageConsumer ) );
-    }
+  }
 
 
   /*****************************************************
@@ -347,9 +349,9 @@ public class ImageLoader
    *
    *****************************************************/
   public void requestImageLoad( Object key, Uri sourceURI, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     requestImageLoad( new Request( key, sourceURI, imageTransformer, scaledImageWidth, imageConsumer ) );
-    }
+  }
 
 
   /*****************************************************
@@ -360,9 +362,9 @@ public class ImageLoader
    *
    *****************************************************/
   public void requestImageLoad( Object key, Bitmap sourceBitmap, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     requestImageLoad( new Request( key, sourceBitmap, imageTransformer, scaledImageWidth, imageConsumer ) );
-    }
+  }
 
 
   /*****************************************************
@@ -373,9 +375,9 @@ public class ImageLoader
    *
    *****************************************************/
   public void requestImageLoad( Object key, byte[] sourceBytes, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     requestImageLoad( new Request( key, sourceBytes, imageTransformer, scaledImageWidth, imageConsumer ) );
-    }
+  }
 
 
   ////////// Inner Class(es) //////////
@@ -386,7 +388,7 @@ public class ImageLoader
    *
    *****************************************************/
   private class Request
-    {
+  {
     Object             key;
 
     File               sourceFile;
@@ -404,65 +406,65 @@ public class ImageLoader
 
 
     private Request( Object key, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this.key              = key;
       this.imageTransformer = imageTransformer;
       this.scaledImageWidth = scaledImageWidth;
       this.imageConsumer    = imageConsumer;
-      }
+    }
 
     Request( Object key, File sourceFile, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       this.sourceFile = sourceFile;
-      }
+    }
 
 
     Request( Object key, int sourceResourceId, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       this.sourceResourceId = sourceResourceId;
-      }
+    }
 
 
     Request( Object key, Uri sourceURI, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       this.sourceURI = sourceURI;
-      }
+    }
 
     Request( Object key, Bitmap sourceBitmap, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       this.sourceBitmap = sourceBitmap;
-      }
+    }
 
     Request( Object key, byte[] sourceBytes, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       this( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       this.sourceBytes = sourceBytes;
-      }
+    }
 
 
     Bitmap loadBitmap( BitmapFactory.Options bitmapFactoryOptions ) throws Exception
-      {
+    {
       if ( DEBUGGING_IS_ENABLED )
-        {
+      {
         Log.d( LOG_TAG, "loadBitmap( bitmapFactoryOptions )" );
         Log.d( LOG_TAG, "  Sample size = " + bitmapFactoryOptions.inSampleSize );
-        }
+      }
 
       Bitmap bitmap;
 
       int rotation = 0;
 
       if ( this.sourceFile != null )
-        {
+      {
         ///// File /////
 
         if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  Decoding file : " + this.sourceFile.getPath() );
@@ -470,35 +472,45 @@ public class ImageLoader
         bitmap = BitmapFactory.decodeFile( this.sourceFile.getPath(), bitmapFactoryOptions );
 
         if ( bitmap != null )
-          {
-          rotation = getRotationForImage( mContext, Uri.fromFile( this.sourceFile ) );
-          }
-        }
-      else if ( this.sourceResourceId != 0 )
         {
+          rotation = getRotationForImage( mContext, Uri.fromFile( this.sourceFile ) );
+        }
+      }
+      else if ( this.sourceResourceId != 0 )
+      {
         ///// Resource Id /////
 
         if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  Decoding resource id : " + this.sourceResourceId );
 
         bitmap = BitmapFactory.decodeResource( mContext.getResources(), this.sourceResourceId, bitmapFactoryOptions );
-        }
+      }
       else if ( this.sourceURI != null )
-        {
+      {
         ///// URI /////
+        BufferedInputStream bis = null;
+        if(sourceURI.toString().contains("android_asset/")) {
+          AssetManager assManager = mContext.getAssets();
+          InputStream is = null;
+          try {
+            String uri = sourceURI.toString().replace("file:///android_asset/", "");
+            is = assManager.open(uri);
+            bis = new BufferedInputStream(is);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        } else {
+          bis = new BufferedInputStream( mContext.getContentResolver().openInputStream( this.sourceURI ));
+        }
 
-        if ( DEBUGGING_IS_ENABLED ) Log.d( LOG_TAG, "  Decoding URI : " + this.sourceURI );
-
-        BufferedInputStream bis = new BufferedInputStream( mContext.getContentResolver().openInputStream( this.sourceURI ) );
-
-        bitmap = BitmapFactory.decodeStream( bis, null, bitmapFactoryOptions );
+        bitmap = BitmapFactory.decodeStream(bis, null, bitmapFactoryOptions );
 
         if ( bitmap != null )
-          {
-          rotation = getRotationForImage( mContext, this.sourceURI );
-          }
-        }
-      else if ( this.sourceBitmap != null )
         {
+          rotation = getRotationForImage( mContext, this.sourceURI );
+        }
+      }
+      else if ( this.sourceBitmap != null )
+      {
         ///// Bitmap /////
 
         bitmap = this.sourceBitmap;
@@ -509,39 +521,39 @@ public class ImageLoader
 
         // There's no point in keeping a reference to the source bitmap if it gets transformed / scaled
         this.sourceBitmap = null;
-        }
+      }
       else if ( this.sourceBytes != null )
-        {
+      {
         ///// Bytes /////
 
         bitmap = BitmapFactory.decodeByteArray( this.sourceBytes, 0, this.sourceBytes.length, bitmapFactoryOptions );
 
         // There's no point in keeping a reference to the source bytes
         this.sourceBytes = null;
-        }
+      }
       else
-        {
+      {
         throw ( new IllegalStateException( "No bitmap to decode" ) );
-        }
+      }
 
 
       // Perform any rotation specified by the EXIF data
 
       if ( bitmap != null && rotation != 0 )
-        {
+      {
         // Perform the rotation by using a matrix to transform the bitmap
 
         Matrix matrix = new Matrix();
 
         matrix.preRotate( rotation );
 
-        bitmap = Bitmap.createBitmap( bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true );
-        }
+        bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+      }
 
 
       return ( bitmap );
-      }
     }
+  }
 
 
   /*****************************************************
@@ -550,7 +562,7 @@ public class ImageLoader
    *
    *****************************************************/
   private class LoaderTask extends AsyncTask<Void,Request,Void>
-    {
+  {
     /*****************************************************
      *
      * Entry point for background thread.
@@ -558,28 +570,28 @@ public class ImageLoader
      *****************************************************/
     @Override
     protected Void doInBackground( Void... params )
-      {
+    {
       // Keep going until we run out of requests
 
       while ( true )
-        {
+      {
         Request request = null;
 
         synchronized ( mRequestQueue )
-          {
+        {
           request = mRequestQueue.poll();
 
           if ( request == null )
-            {
+          {
             mLoaderTask = null;
 
             return ( null );
-            }
           }
+        }
 
 
         try
-          {
+        {
           // In order to avoid running out of memory, we need to first check how big the bitmap
           // is. If it is larger that a size limit, we need to sub sample the decoded image to bring
           // it down.
@@ -601,13 +613,13 @@ public class ImageLoader
           int bitmapPixels = width * height;
 
           while ( bitmapPixels > MAX_BITMAP_PIXELS )
-            {
+          {
             sampleSize   <<= 1;   //  * 2
             width        >>>= 1;  //  / 2
             height       >>>= 1;  //  / 2
 
             bitmapPixels = width * height;
-            }
+          }
 
 
           // Load the bitmap using the calculated sample size. If that fails, try dropping
@@ -616,33 +628,33 @@ public class ImageLoader
           Bitmap bitmap = null;
 
           try
-            {
+          {
             bitmapFactoryOptions = getFullBitmapOptions( Bitmap.Config.ARGB_8888, sampleSize );
             bitmap               = request.loadBitmap( bitmapFactoryOptions );
-            }
+          }
           catch ( OutOfMemoryError oome )
-            {
+          {
             Log.e( LOG_TAG, "Unable to decode bitmap at ARGB_8888 - re-trying at RGB_565" );
 
             bitmapFactoryOptions = getFullBitmapOptions( Bitmap.Config.RGB_565, sampleSize );
             bitmap               = request.loadBitmap( bitmapFactoryOptions );
-            }
+          }
 
 
           // Perform any transformation
 
           if ( request.imageTransformer != null )
-            {
+          {
             bitmap = request.imageTransformer.getTransformedBitmap( bitmap );
-            }
+          }
 
 
           // Perform any scaling
 
           if ( request.scaledImageWidth > 0 )
-            {
+          {
             bitmap = ImageAgent.downscaleBitmap( bitmap, request.scaledImageWidth );
-            }
+          }
 
 
           // Store the bitmap and publish the result
@@ -650,18 +662,18 @@ public class ImageLoader
           request.bitmap = bitmap;
 
           publishProgress( request );
-          }
+        }
         catch ( Exception exception )
-          {
+        {
           Log.e( LOG_TAG, "Unable to load bitmap", exception );
 
           request.exception = exception;
 
           publishProgress( request );
-          }
-
         }
+
       }
+    }
 
 
     /*****************************************************
@@ -671,24 +683,24 @@ public class ImageLoader
      *****************************************************/
     @Override
     protected void onProgressUpdate( Request... requests )
-      {
+    {
       Request request = requests[ 0 ];
 
 
       // Callback to the consumer with the result.
 
       if ( request.bitmap != null )
-        {
+      {
         request.imageConsumer.onImageAvailable  ( request.key, request.bitmap );
-        }
-      else
-        {
-        request.imageConsumer.onImageUnavailable( request.key, request.exception );
-        }
       }
-
-
+      else
+      {
+        request.imageConsumer.onImageUnavailable( request.key, request.exception );
+      }
     }
 
+
   }
+
+}
 

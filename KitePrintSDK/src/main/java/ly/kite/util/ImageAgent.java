@@ -69,7 +69,7 @@ import ly.kite.KiteSDK;
  *
  *****************************************************/
 public class ImageAgent
-  {
+{
   ////////// Static Constant(s) //////////
 
   @SuppressWarnings( "unused" )
@@ -107,14 +107,14 @@ public class ImageAgent
    *
    *****************************************************/
   static public ImageAgent getInstance( Context context )
-    {
+  {
     if ( sImageManager == null )
-      {
+    {
       sImageManager = new ImageAgent( context );
-      }
+    }
 
     return ( sImageManager );
-    }
+  }
 
 
   /*****************************************************
@@ -124,7 +124,7 @@ public class ImageAgent
    *
    *****************************************************/
   static public String toSafeString( String sourceString )
-    {
+  {
     if ( sourceString == null ) return ( "" );
 
     int length = sourceString.length();
@@ -132,25 +132,25 @@ public class ImageAgent
     char[] targetCharArray = new char[ length ];
 
     for ( int index = 0; index < length; index ++ )
-      {
+    {
       char sourceChar = sourceString.charAt( index );
 
       if ( ( sourceChar >= '0' && sourceChar <= '9' ) ||
-           ( sourceChar >= 'A' && sourceChar <= 'Z' ) ||
-           ( sourceChar >= 'a' && sourceChar <= 'z' ) )
-        {
+              ( sourceChar >= 'A' && sourceChar <= 'Z' ) ||
+              ( sourceChar >= 'a' && sourceChar <= 'z' ) )
+      {
         // Digits 0-9 and letters A-Z / a-z stay the same
         targetCharArray[ index ] = sourceChar;
-        }
+      }
       else
-        {
+      {
         // Everything else gets converted to underscore
         targetCharArray[ index ] = '_';
-        }
       }
+    }
 
     return ( new String( targetCharArray ) );
-    }
+  }
 
 
   /*****************************************************
@@ -159,7 +159,7 @@ public class ImageAgent
    *
    *****************************************************/
   static public Bitmap crop( Bitmap originalBitmap, float croppedAspectRatio )
-    {
+  {
     // Get the bitmap dimensions
     int originalWidth  = originalBitmap.getWidth();
     int originalHeight = originalBitmap.getHeight();
@@ -176,23 +176,23 @@ public class ImageAgent
     Bitmap croppedBitmap;
 
     if ( croppedAspectRatio <= originalAspectRatio )
-      {
+    {
       float croppedWidth  = originalWidth * croppedAspectRatio / originalAspectRatio;
       float croppedHeight = originalHeight;
 
       croppedBitmap = originalBitmap.createBitmap( originalBitmap, (int)( ( originalWidth - croppedWidth ) * 0.5f ), 0, (int)croppedWidth, (int)croppedHeight );
-      }
+    }
     else
-      {
+    {
       float croppedHeight = originalHeight * originalAspectRatio / croppedAspectRatio;
       float croppedWidth  = originalWidth;
 
       croppedBitmap = originalBitmap.createBitmap( originalBitmap, 0, (int)( ( originalHeight - croppedHeight ) * 0.5f ), (int)croppedWidth, (int)croppedHeight );
-      }
+    }
 
 
     return ( croppedBitmap );
-    }
+  }
 
 
   /*****************************************************
@@ -206,7 +206,7 @@ public class ImageAgent
    *
    *****************************************************/
   static public Bitmap downscaleBitmap( Bitmap sourceBitmap, int scaledWidth )
-    {
+  {
     if ( scaledWidth < 1 || sourceBitmap.getWidth() <= scaledWidth ) return ( sourceBitmap );
 
 
@@ -215,7 +215,7 @@ public class ImageAgent
     int scaledHeight = (int)( (float)sourceBitmap.getHeight() * (float)scaledWidth / (float)sourceBitmap.getWidth() );
 
     return ( sourceBitmap.createScaledBitmap( sourceBitmap, scaledWidth, scaledHeight, true ) );
-    }
+  }
 
 
   /*****************************************************
@@ -225,7 +225,7 @@ public class ImageAgent
    *
    *****************************************************/
   static public void verticallyFlipBitmap( Bitmap bitmap )
-    {
+  {
     if ( bitmap == null ) return;
 
     int imageWidth      = bitmap.getWidth();
@@ -236,14 +236,14 @@ public class ImageAgent
     int[] bottomRow = new int[ imageWidth ];
 
     for ( int y = 0; y < imageHalfHeight; y ++ )
-      {
+    {
       bitmap.getPixels( topRow,    0, imageWidth, 0,                   y, imageWidth, 1 );
       bitmap.getPixels( bottomRow, 0, imageWidth, 0, imageHeight - y - 1, imageWidth, 1 );
 
-      bitmap.setPixels( bottomRow, 0, imageWidth, 0, y, imageWidth, 1 );
+      bitmap.setPixels(bottomRow, 0, imageWidth, 0, y, imageWidth, 1);
       bitmap.setPixels( topRow,    0, imageWidth, 0, imageHeight - y - 1, imageWidth, 1 );
-      }
     }
+  }
 
 
   /*****************************************************
@@ -252,7 +252,7 @@ public class ImageAgent
    *
    *****************************************************/
   static public Bitmap rotateAnticlockwiseBitmap( Bitmap sourceBitmap )
-    {
+  {
     if ( sourceBitmap == null ) return ( null );
 
 
@@ -267,26 +267,26 @@ public class ImageAgent
     Bitmap.Config bitmapConfig = sourceBitmap.getConfig();
 
     try
-      {
+    {
       targetBitmap = Bitmap.createBitmap( height, width, bitmapConfig );
-      }
+    }
     catch ( OutOfMemoryError oome )
-      {
+    {
       // If we ran out of memory trying to create a bitmap with full colour space, try
       // again using a reduced colour space.
 
       if ( bitmapConfig == Bitmap.Config.ARGB_8888 )
-        {
+      {
         try
-          {
+        {
           targetBitmap = Bitmap.createBitmap( height, width, Bitmap.Config.RGB_565 );
-          }
+        }
         catch ( OutOfMemoryError oome2 )
-          {
+        {
           // Give up
-          }
         }
       }
+    }
 
     if ( targetBitmap == null ) return ( sourceBitmap );
 
@@ -296,28 +296,28 @@ public class ImageAgent
     int[] column = new int[ height ];
 
     for ( int x = 0; x < width; x ++ )
-      {
+    {
       // Convert the column from the source to a row in the target
       sourceBitmap.getPixels( column, 0,      1, x,             0,      1, height );
       targetBitmap.setPixels( column, 0, height, 0, width - x - 1, height,      1 );
-      }
+    }
 
 
     return ( targetBitmap );
-    }
+  }
 
 
   ////////// Constructor(s) //////////
 
   private ImageAgent( Context context )
-    {
+  {
     mContext            = context;
     mCacheDirectory     = context.getCacheDir();
     mURLResourceIdTable = new HashMap<>();
 
     mImageLoader    = ImageLoader.getInstance( context );
     mFileDownloader = FileDownloader.getInstance( context );
-    }
+  }
 
 
   ////////// Method(s) //////////
@@ -329,11 +329,11 @@ public class ImageAgent
    *
    *****************************************************/
   public ImageAgent addResourceMapping( String urlString, int resourceId  )
-    {
+  {
     mURLResourceIdTable.put( urlString, resourceId );
 
     return ( this );
-    }
+  }
 
 
   /*****************************************************
@@ -343,14 +343,14 @@ public class ImageAgent
    *
    *****************************************************/
   public ImageAgent addResourceMappings( Pair<String,Integer>... resourceMappings )
-    {
+  {
     for ( Pair<String,Integer> resourceMapping : resourceMappings )
-      {
+    {
       mURLResourceIdTable.put( resourceMapping.first, resourceMapping.second );
-      }
+    }
 
     return ( this );
-    }
+  }
 
 
   /*****************************************************
@@ -361,10 +361,10 @@ public class ImageAgent
    *
    *****************************************************/
   public void clearPendingRequests()
-    {
+  {
     mImageLoader.clearPendingRequests();
     mFileDownloader.clearPendingRequests();
-    }
+  }
 
 
   /*****************************************************
@@ -373,9 +373,9 @@ public class ImageAgent
    *
    *****************************************************/
   public String getImageDirectoryPath( String imageClassString )
-    {
+  {
     return ( mCacheDirectory.getPath() + File.separator + toSafeString( imageClassString ) );
-    }
+  }
 
 
   /*****************************************************
@@ -384,14 +384,14 @@ public class ImageAgent
    *
    *****************************************************/
   public Pair<String,String> getImageDirectoryAndFilePath( String imageClassString, String imageIdentifier )
-    {
+  {
     // Construct the directory and file paths. The file path is: "<cache-directory>/<image-class-string>/<image-url-string>"
     // The image class string and image URL string are first converted into 'safe' strings.
     String imageDirectoryPath = getImageDirectoryPath( imageClassString );
     String imageFilePath      = imageDirectoryPath + File.separator + toSafeString( imageIdentifier );
 
     return ( new Pair<String,String>( imageDirectoryPath, imageFilePath ) );
-    }
+  }
 
 
   /*****************************************************
@@ -402,9 +402,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( Object key, File imageFile, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     mImageLoader.requestImageLoad( key, imageFile, imageTransformer, scaledImageWidth, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -415,9 +415,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( Object key, int resourceId, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     mImageLoader.requestImageLoad( key, resourceId, imageTransformer, scaledImageWidth, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -428,9 +428,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( Object key, Uri imageUri, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     mImageLoader.requestImageLoad( key, imageUri, imageTransformer, scaledImageWidth, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -441,21 +441,31 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( String imageClassString, Object key, URL imageURL, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     // First check if we have been provided with a mapping to a resource id. If so - make
     // a resource request instead.
 
     if ( ! FORCE_FILE_DOWNLOAD )
-      {
-      Integer resourceIdAsInteger = mURLResourceIdTable.get( imageURL.toString() );
+    {
+      Integer resourceIdAsInteger = mURLResourceIdTable.get(imageURL.toString());
 
       if ( resourceIdAsInteger != null )
-        {
+      {
         requestImage( key, resourceIdAsInteger, imageTransformer, scaledImageWidth, imageConsumer );
 
         return;
-        }
       }
+    }
+
+    // Next, check if it's a local asset path.
+    if(imageURL.toString().contains("file:///android_asset/")) {
+
+      Uri imageUri = Uri.parse(imageURL.toString());
+      mImageLoader.requestImageLoad( key, imageUri, imageTransformer, scaledImageWidth, imageConsumer );
+      return;
+    }
+
+
 
 
     // Generate the directory and file that the image would be downloaded to
@@ -472,13 +482,13 @@ public class ImageAgent
     File imageFile      = new File( imageFilePath );
 
     if ( ( ! FORCE_FILE_DOWNLOAD ) && imageFile.exists() )
-      {
+    {
       // Make a request to load the image
 
       mImageLoader.requestImageLoad( key, imageFile, imageTransformer, scaledImageWidth, imageConsumer );
-      }
+    }
     else
-      {
+    {
       // Notify the consumer that the image will need to be downloaded
       imageConsumer.onImageDownloading( key );
 
@@ -489,8 +499,8 @@ public class ImageAgent
       DownloadCallback downloadCallback = new DownloadCallback( key, imageTransformer, scaledImageWidth, imageConsumer );
 
       mFileDownloader.requestFileDownload( imageURL, imageDirectory, imageFile, downloadCallback );
-      }
     }
+  }
 
 
   /*****************************************************
@@ -500,9 +510,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( String imageClassString, Object key, URL imageURL, IImageConsumer imageConsumer )
-    {
+  {
     requestImage( imageClassString, key, imageURL, null, 0, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -512,9 +522,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( String imageClassString, URL imageURL, IImageConsumer imageConsumer )
-    {
+  {
     requestImage( imageClassString, imageURL, imageURL, null, 0, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -525,9 +535,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( Object key, Bitmap bitmap, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     mImageLoader.requestImageLoad( key, bitmap, imageTransformer, scaledImageWidth, imageConsumer );
-    }
+  }
 
 
   /*****************************************************
@@ -538,9 +548,9 @@ public class ImageAgent
    *
    *****************************************************/
   public void requestImage( Object key, byte[] imageBytes, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-    {
+  {
     mImageLoader.requestImageLoad( key, imageBytes, imageTransformer, scaledImageWidth, imageConsumer );
-    }
+  }
 
 
   ////////// Inner Class(es) //////////
@@ -551,7 +561,7 @@ public class ImageAgent
    *
    *****************************************************/
   private class DownloadCallback implements FileDownloader.ICallback
-    {
+  {
     private Object             mKey;
     private IImageTransformer  mImageTransformer;
     private int                mScaledImageWidth;
@@ -559,27 +569,27 @@ public class ImageAgent
 
 
     DownloadCallback( Object key, IImageTransformer imageTransformer, int scaledImageWidth, IImageConsumer imageConsumer )
-      {
+    {
       mKey              = key;
       mImageTransformer = imageTransformer;
       mScaledImageWidth = scaledImageWidth;
       mImageConsumer    = imageConsumer;
-      }
+    }
 
 
     @Override
     public void onDownloadSuccess( URL sourceURL, File targetDirectory, File targetFile )
-      {
+    {
       // Once the image has downloaded - immediately request that it be loaded
       mImageLoader.requestImageLoad( mKey, targetFile, mImageTransformer, mScaledImageWidth, mImageConsumer );
-      }
+    }
 
     @Override
     public void onDownloadFailure( URL sourceURL, Exception exception )
-      {
+    {
       mImageConsumer.onImageUnavailable( mKey, exception );
-      }
-
     }
 
   }
+
+}
